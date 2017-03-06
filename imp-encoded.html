@@ -1,0 +1,66 @@
+<head>
+    <h1>lalala</h1>
+</head>
+<body>
+    <script src="https://d3js.org/d3.v3.min.js"></script>
+    <script>
+    let ages = [], kdeValues = [], Ymax = 100; 
+        
+    //decay calculator
+    function decayCalculator(t, mean) {
+        let decay;
+        //mean = -1; // don't know how to calculate yet
+        decay = 1 * Math.exp(-t / mean);
+        return decay;
+    }
+        
+    //kernal density estimator function
+    function kernalDensityEstimator(ek, data, t) {
+      return d3.mean(data, v => {return ek(t - v)})
+    }
+        
+    //the example uses number 7 as the scale for smoother line, we can use it too at this time.
+    function epanechnikovKernel(scale) {
+      return function(u) {
+        return Math.abs(u /= scale) <= 1 ? .75 * (1 - u * u) / scale : 0;
+      };
+    }    
+        
+    d3.json("data.json", (error, data) => {
+        if (error) {
+            console.log(error);
+        } 
+        //I use seconds to calculate age
+        let MS_PER_SECONDE = 1000;
+        let now = new Date()
+        for (let i in data) {
+            let t = data[i].harvested_at;//get the time that an event was captured
+            //calculate mean life time
+            let born = new Date(t);
+            let age = parseInt((now.getTime() - born.getTime()) / MS_PER_SECONDE);
+            ages.push(age);
+            
+            //calculate the kde
+            let kde = kernalDensityEstimator(epanechnikovKernel(7), data, t);
+            kdeValues.push(kde);
+        }
+        
+        let meanLifeTime = d3.mean(ages);
+        let maxKdeValue = d3.max(kdeValues);
+        
+        for (let i in data) {
+            let t = data[i].harvested_at;//get the time that an event was captured 
+            let decay = decayCalculator(t, meanLifeTime);
+            let kde = kernalDensityEstimator(epanechnikovKernel(7), data, t);
+            let density = (kde) => {return kde * Ymax / maxKdeValue;};
+            let imp = decay * density;
+            
+            //don't know how to store the imp value yet;
+            //for now I store it as an attribute of the json object
+            //later when actually mapping, I will call this as my final function.
+            data[i].[imp] = imp;
+        }
+    })
+    
+    </script>
+</body>
