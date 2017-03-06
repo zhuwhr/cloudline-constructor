@@ -20,9 +20,9 @@ function importance(event) {
 //decay function: f(t) = f(0) * e^(-t/mean)
 //input: the time (age) of an event object
 //output: a value representing dacay
-function decayCalculator(t) {
-    let decay, mean;
-    mean = -1; // don't know how to calculate yet
+function decayCalculator(t, mean) {
+    let decay;
+    //mean = -1; // don't know how to calculate yet
     decay = 1 * Math.exp(-t / mean);
     return decay;
 }
@@ -51,7 +51,7 @@ function Dmax(t) {
 //input: the time (age) of an event object 
 //output: a value of density estimation
 //search this function online
-function kernelDensityEstimator(ek, data, t) {
+function kernalDensityEstimator(ek, data, t) {
   return d3.mean(data, v => {return ek(t - v)})
 }
 
