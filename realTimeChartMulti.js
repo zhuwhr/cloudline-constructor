@@ -66,7 +66,7 @@ function realTimeChartMulti() {
 
     // create main group and translate
     var main = svg.append("g")
-        .attr("transform", "translate (" + margin.left + "," + marginTop + ")");
+        .attr("transform", "translate (" + margin.right + "," + marginTop + ")");
 
     // define clip-path
     main.append("defs").append("clipPath")
@@ -83,7 +83,7 @@ function realTimeChartMulti() {
         .attr("y", 0)
         .attr("width", width)
         .attr("height", height)
-        .style("fill", "#f5f5f5");
+        .style("fill", "#ffffff");
 
     // note that two groups are created here, the latter assigned to barG;
     // the former will contain a clip path to constrain objects to the chart area; 
@@ -102,7 +102,8 @@ function realTimeChartMulti() {
 
     // add group for y axis
     yAxisG = main.append("g")
-        .attr("class", "y axis");
+        .attr("class", "y axis")
+        .attr("transform", "translate(" + width + ",0)");
 
     // in x axis group, add x axis title
     xAxisG.append("text")
@@ -118,7 +119,7 @@ function realTimeChartMulti() {
     // in y axis group, add y axis title
     yAxisG.append("text")
         .attr("class", "title")
-        .attr("transform", "rotate(-90)")
+        .attr("transform", "rotate(-90) translate(0, 160)")
         .attr("x", - height / 2)
         .attr("y", -margin.left + 15) //-35
         .attr("dy", ".71em")
@@ -144,7 +145,7 @@ function realTimeChartMulti() {
 
     // define main chart axis
     xAxis = d3.svg.axis().orient("bottom");
-    yAxis = d3.svg.axis().orient("left");
+    yAxis = d3.svg.axis().orient("right");
 
     // add nav chart
     var nav = svg.append("g")
