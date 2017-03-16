@@ -127,7 +127,9 @@ var color = d3.scale.category10();
 var d = -1;
 var shapes = ["rect", "circle"];
 var timeout = 0;
+var objs = [];
 
+    
 
 // define data generator
 function dataGenerator() {
@@ -182,7 +184,8 @@ function dataGenerator() {
       }
 
       // send the datum to the chart
-      chart.datum(obj);      
+      chart.datum(obj); 
+      objs.push(obj);
     });
 
     // drive data into the chart at average interval of five seconds
