@@ -22,7 +22,7 @@ function epanechnikovKernel(scale) {
 }
 ```
 
-In this example, the kde function takes takes a function and an array and returns a function that produces a pair of coordinates [x, y]. This pair of coordinates can be passed to a d3 path generator to draw a line (kde line).
+In this example, the kde function takes a function and an array and returns a function that produces a pair of coordinates [x, y]. This pair of coordinates can be passed to a d3 path generator to draw a line (kde line).
 
 ## Function details:
 
@@ -50,13 +50,15 @@ output: a function that takes a number as input and return a number value as wel
 
 # Our need
 
-[Kernel density estimation](http://en.wikipedia.org/wiki/Kernel_density_estimation) is a method of estimating the probability distribution of a random variable based on a random sample. We need a value of kernel density at a certain time t (t is the x value in our cloudline chart), which is the probability value. In the above example, it should be the value of y in coordinate.
+[Kernel density estimation](http://en.wikipedia.org/wiki/Kernel_density_estimation) is a method of estimating the probability distribution of a random variable based on a random sample. We need a value of kernel density at a certain time t (t is the x value in our cloudline chart), which is the probability value. In the above example, the kernel density value should be the value of y in coordinate.
 
 Here is the actual kde function we need:
 
 ```javascript
-function kernelDensityEstimator(ek, data, t) {
-  return d3.mean(data, v => {return ek(t - v)})
+function kernelDensityEstimator(ek, t) {
+  return function(ages) {
+    return d3.mean(ages, v => {return ek(t - v)})
+  }
 }
 
 //the example uses number 7 as the scale for smoother line, we can use it too at this time.
@@ -70,9 +72,9 @@ function epanechnikovKernel(scale) {
 d3.json("data.json", (error, data) => {
   if (error) throw error;
   let t = data[timeStamp];
-  let kde = kernalDensityEstimator(epanechnikovKernel(7), data, t);
+  let kde = kernalDensityEstimator(epanechnikovKernel(7), t);
+  let kdeValue = kde(data)
   //here kde is the value we want.
 }
-
 ```
 
