@@ -4,7 +4,6 @@
   <meta charset="utf-8">
   <title>Real Time Chart Multi</title>
   <link rel=stylesheet type=text/css href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.3.2/css/bootstrap.min.css" media="all">
-  <!--<link rel=stylesheet type=text/css href="../_lib/bootstrap.min.css" media="all">-->
   <style>
   .axis text {
     font: 10px sans-serif;
@@ -58,15 +57,12 @@
   <div class="well">
     <h4>D3 Based Real Time Chart with Multiple Data Streams 
   </div>
-  <input id="debug" type="checkbox" name="debug" value="debug" style="margin-bottom: 10px" /> Debug
-  <input id="halt" type="checkbox" name="halt" value="halt" style="margin-bottom: 10px" /> Halt
-
   <div id="viewDiv"></div>
 
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
-<!--<script src="../_lib/d3.min.js"></script>-->
+<script src="https://cdn.pubnub.com/sdk/javascript/pubnub.4.4.2.min.js"></script>
 <script src="realTimeChartMulti.js"></script>
 <script>
 'use strict';
@@ -74,9 +70,9 @@
 // create the real time chart
 var chart = realTimeChartMulti()
     .title("Chart Title")
-    .yTitle("Categories")
+    .yTitle("person")
     .xTitle("Time")
-    .yDomain(["Category1"]) // initial y domain (note array)
+    .yDomain(["I", "you", "they"]) // initial y domain (note array)
     .border(true)
     .width(900)
     .height(350);
@@ -85,24 +81,6 @@ var chart = realTimeChartMulti()
 var chartDiv = d3.select("#viewDiv").append("div")
     .attr("id", "chartDiv")
     .call(chart);
-
-// alternative and equivalent invocation
-//chart(chartDiv); 
-
-// event handler for debug checkbox
-d3.select("#debug").on("change", function() {
-  var state = d3.select(this).property("checked")
-  chart.debug(state);
-})
-
-// event handler for halt checkbox
-d3.select("#halt").on("change", function() {
-  var state = d3.select(this).property("checked")
-  chart.halt(state);
-})
-
-
-// configure the data generator
 
 // mean and deviation for generation of time intervals
 //var tX = 5;
@@ -118,87 +96,89 @@ var timeScale = d3.scale.linear()
 
 // define function that returns normally distributed random numbers
 var normal = d3.random.normal(meanMs, dev);
-//console.log(normal());
 
 // define color scale
 var color = d3.scale.category10();
 
+// Create PubNub Socket Handler
+const pubnub = new PubNub({
+    publishKey   : 'empty'
+,   ssl          : true
+,   subscribeKey : 'sub-c-78806dd4-42a6-11e4-aed8-02ee2ddab7fe'
+});
+
+// Subscribe to Twitter feed
+pubnub.subscribe({ channels: ['pubnub-twitter'] });
+
+// Add Socket Event Function Handlers
+pubnub.addListener({
+    status  : statusEvent => console.log(statusEvent)
+,   message : message     => processData(message.message)
+});
+
+function processData(d) {
+    var now = new Date(new Date().getTime());
+    var obj;
+    if (d.text.includes('I')) {
+        obj = {
+          time: now,
+          color: "blue",
+          opacity: 0.5,
+          category: "I",
+          type: "circle",
+          size: 5,
+        };  
+    } else if (d.text.includes('you')) {
+        obj = {
+          time: now,
+          color: "red",
+          opacity: 0.5,
+          category: "you",
+          type: "circle",
+          size: 5,
+        };
+    } else if (d.text.includes('they')) {
+        obj = {
+          time: now,
+          color: "green",
+          opacity: 0.5,
+          category: "they",
+          type: "circle",
+          size: 5,
+        };
+    }
+    if (obj != undefined) {
+        chart.datum(obj);
+    } 
+}
+
+/* for sake of showing the power of cloudline constructor
 // in a normal use case, real time data would arrive through the network or some other mechanism
 var d = -1;
 var shapes = ["rect", "circle"];
 var timeout = 0;
 var objs = [];
 
+let ages = [], kdeValues = [], Ymax = 100; 
     
-
-// define data generator
-function dataGenerator() {
-
-  setTimeout(function() {
-
-    // add categories dynamically
-    d++;
-    switch (d) {
-      case 5:
-        chart.yDomain(["Category1", "Category2"]);
-        break;
-      case 10:
-        chart.yDomain(["Category1", "Category2", "Category3"]);
-        break;
-      default:
-        chart.yDomain(["Category1", "Category2", "Category3", "Category4"]);
-    }
-
-    // output a sample for each category, each interval (five seconds)
-    chart.yDomain().forEach(function(cat, i) {
-
-      // create randomized timestamp for this category data item
-      var now = new Date(new Date().getTime() + i * (Math.random() - 0.5) * 1000);
-
-      // create new data item
-      var obj;
-      var doSimple = false;
-      if (doSimple) {
-        obj = {
-          // simple data item (simple black circle of constant size)
-          time: now,
-          color: "black",
-          opacity: 1,
-          category: "Category" + (i + 1),
-          type: "circle",
-          size: 5,
-        };
-
-      } else {
-        obj = {
-          // complex data item; four attributes (type, color, opacity and size) are changing dynamically with each iteration (as an example)
-          time: now,
-          //color: color(d % 10),
-          color: "red",
-          opacity: 0.1,
-          size: Math.max(Math.round(Math.random() * 12), 4),
-          category: "Category" + (i + 1),
-          //type: shapes[Math.round(Math.random() * (shapes.length - 1))], // the module currently doesn't support dynamically changed svg types (need to add key function to data, or method to dynamically replace svg object – tbd)
-          type: "circle",
-        };
-      }
-
-      // send the datum to the chart
-      chart.datum(obj); 
-      objs.push(obj);
-    });
-
-    // drive data into the chart at average interval of five seconds
-    // here, set the timeout to roughly five seconds
-    timeout = Math.round(timeScale(normal()));
-
-    // do forever
-    dataGenerator();
-
-  }, timeout);//end of setTimeout
+//decay calculator
+function decayCalculator(t, mean) {
+    let decay;
+    //mean = -1; // don't know how to calculate yet
+    decay = 1 * Math.exp(-t / mean);
+    return decay;
 }
 
-// start the data generator
-dataGenerator();
+//kernal density estimator function
+function kernalDensityEstimator(ek, data, t) {
+  return d3.mean(data, v => {return ek(t - v)})
+}
 
+//the example uses number 7 as the scale for smoother line, we can use it too at this time.
+function epanechnikovKernel(scale) {
+  return function(u) {
+    return Math.abs(u /= scale) <= 1 ? .75 * (1 - u * u) / scale : 0;
+  };
+}    
+*/
 </script>
