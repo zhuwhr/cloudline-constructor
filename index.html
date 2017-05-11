@@ -49,6 +49,19 @@
     padding-top: 0px;
     padding-bottom: 0px;
   }
+  #tooltip {
+    position: absolute;
+    top: 0;
+    left: 0;
+    color: black;
+    font-weight: bold;
+    padding: 12px;
+    background: #ccc;
+    visibility: hidden;
+    opacity: 0.1;
+    transition: all 0.5s;
+    border-radius: 10px;
+  }
   </style>
 <body>
 
@@ -58,6 +71,7 @@
       <h4>Cloudline - streaming data visualization</h4>
   </div>
   <div id="viewDiv"></div>
+  <div id="tooltip"></div>    
 
 </div>
 
@@ -127,6 +141,7 @@ function processData(d) {
           category: "I",
           type: "circle",
           size: 5,
+          origin: d,
         };  
     } else if (d.text.includes('you')) {
         obj = {
@@ -136,6 +151,7 @@ function processData(d) {
           category: "you",
           type: "circle",
           size: 5,
+          origin: d,
         };
     } else if (d.text.includes('they')) {
         obj = {
@@ -145,6 +161,7 @@ function processData(d) {
           category: "they",
           type: "circle",
           size: 5,
+          origin: d,
         };
     }
     if (obj != undefined) {

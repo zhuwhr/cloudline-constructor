@@ -246,10 +246,13 @@ function realTimeChartMulti() {
     // (which happens constantly), or after arrival of new data, or at init
     function refresh() {
 
-      // process data to remove too late data items 
+      // process data to remove too late data items
+      /* 
       data = data.filter(function(d) {
         if (d.time.getTime() > startTime.getTime()) return true;
       })
+      */
+
 
       // determine number of categories
       var categoryCount = yDomain.length;
@@ -270,7 +273,6 @@ function realTimeChartMulti() {
       // exited
       var updateSel = barG.selectAll(".bar")
           .data(data);
-
       // remove items
       updateSel.exit().remove();
 
@@ -286,7 +288,30 @@ function realTimeChartMulti() {
           .attr("class", "bar")
           .attr("id", function() { 
             return "bar-" + barId++; 
+          })
+          .on("mouseenter", function(d, i) {
+            d3.selectAll("circle")
+              .style("stroke", undefined);
+            d3.select("#tooltip").style({
+              visibility: "visible",
+              top: d3.event.clientY + 5 + "px",
+              left: d3.event.clientX + 10 + "px",
+              opacity: 1
+            })
+            .text(d.origin.text);
+            d3.select(this).style("stroke", function(d, i) {
+              return "black";
+            });
+          })
+          .on("mouseleave", (d, i) => {
+            d3.selectAll("circle")
+              .style("stroke", undefined);
+            d3.select("#tooltip").style({
+              visibility: "hidden",
+              opacity: 0
+            });
           });
+
 
       // update items; added items are now part of the update selection
       updateSel
